@@ -39,7 +39,8 @@ void FixedLagSmoother::print(const std::string& s, const KeyFormatter& keyFormat
 /* ************************************************************************* */
 bool FixedLagSmoother::equals(const FixedLagSmoother& rhs, double tol) const {
   return std::abs(smootherLag_ - rhs.smootherLag_) < tol
-      && std::equal(timestampKeyMap_.begin(), timestampKeyMap_.end(), rhs.timestampKeyMap_.begin());
+      && std::equal(timestampKeyMap_.begin(), timestampKeyMap_.end(), rhs.timestampKeyMap_.begin())
+      && frozenKeys_ == rhs.frozenKeys_;
 }
 
 /* ************************************************************************* */
@@ -73,8 +74,22 @@ void FixedLagSmoother::updateKeyTimestampMap(const KeyTimestampMap& timestamps) 
 }
 
 /* ************************************************************************* */
+void FixedLagSmoother::updateFrozenKeys(const KeySet& keysToFreeze,
+                                        const KeySet& keysToUnfreeze) {
+  for (Key key : keysToFreeze) {
+    frozenKeys_.insert(key);
+  }
+  for (Key key : keysToUnfreeze) {
+    frozenKeys_.erase(key);
+  }
+}
+
+/* ************************************************************************* */
 void FixedLagSmoother::eraseKeyTimestampMap(const KeyVector& keys) {
   for(Key key: keys) {
+    // Also remove from frozen set so it stays consistent after marginalization
+    frozenKeys_.erase(key);
+
     // Erase the key from the Timestamp->Key map
     double timestamp = keyTimestampMap_.at(key);
 
@@ -105,7 +120,10 @@ KeyVector FixedLagSmoother::findKeysBefore(double timestamp) const {
   KeyVector keys;
   TimestampKeyMap::const_iterator end = timestampKeyMap_.lower_bound(timestamp);
   for(TimestampKeyMap::const_iterator iter = timestampKeyMap_.begin(); iter != end; ++iter) {
-    keys.push_back(iter->second);
+    // Skip keys that have been frozen — they are exempt from auto-marginalization
+    if (frozenKeys_.count(iter->second) == 0) {
+      keys.push_back(iter->second);
+    }
   }
   return keys;
 }

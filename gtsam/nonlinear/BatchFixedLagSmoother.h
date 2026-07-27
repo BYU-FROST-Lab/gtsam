@@ -55,11 +55,18 @@ public:
   /** Check if two IncrementalFixedLagSmoother Objects are equal */
   bool equals(const FixedLagSmoother& rhs, double tol = 1e-9) const override;
 
-  /** Add new factors, updating the solution and relinearizing as needed. */
+  /**
+   * Add new factors, updating the solution and relinearizing as needed.
+   * @param keysToFreeze    keys that should not be marginalized until unfrozen
+   * @param keysToUnfreeze  keys to remove from the frozen set; if outside the
+   *                        lag window they are marginalized in this update
+   */
   Result update(const NonlinearFactorGraph& newFactors = NonlinearFactorGraph(),
                 const Values& newTheta = Values(),
                 const KeyTimestampMap& timestamps = KeyTimestampMap(),
-                const FactorIndices& factorsToRemove = FactorIndices()) override;
+                const FactorIndices& factorsToRemove = FactorIndices(),
+                const KeySet& keysToFreeze = KeySet(),
+                const KeySet& keysToUnfreeze = KeySet()) override;
 
   /** Compute an estimate from the incomplete linear delta computed during the last update.
    * This delta is incomplete because it was not updated below wildfire_threshold.  If only
