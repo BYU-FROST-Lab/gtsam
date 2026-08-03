@@ -45,7 +45,7 @@ public:
    * Meta information returned about the update
    */
   // TODO: Think of some more things to put here
-  struct Result {
+  struct GTSAM_EXPORT Result {
     size_t iterations; ///< The number of optimizer iterations performed
     size_t intermediateSteps; ///< The number of intermediate steps performed within the optimization. For L-M, this is the number of lambdas tried.
     size_t nonlinearVariables; ///< The number of variables that can be relinearized
