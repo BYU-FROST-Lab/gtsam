@@ -137,6 +137,8 @@ class QpProblem : gtsam::ConstrainedOptProblem {
 #include <gtsam/constrained/QcqpProblem.h>
 class QcqpProblem : gtsam::ConstrainedOptProblem {
   QcqpProblem();
+  QcqpProblem(const gtsam::NonlinearFactorGraph& graph,
+               size_t columnDimension = 1);
 
   void addCost(const gtsam::QpCost& cost);
   void addConstraint(const gtsam::LinearConstraint& constraint);
@@ -151,7 +153,9 @@ class QcqpProblem : gtsam::ConstrainedOptProblem {
 class ConstrainedOptimizerParams {
   ConstrainedOptimizerParams();
 
-  size_t maxIterations;
+  // The wrapper generator marshals int as a scalar on every supported target;
+  // the underlying C++ field remains size_t.
+  int maxIterations;
   double absoluteViolationTolerance;
   double relativeViolationTolerance;
   double absoluteCostTolerance;
